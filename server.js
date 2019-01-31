@@ -25,14 +25,15 @@ app.use(passport.session())
 
 app.use(
     session({
-        secret: process.env.SESSION_SECRET,
+        secret: process.env.SESSION_SECRET || 'secret',
         resave: true,
         saveUninitialized: true,
     })
 )
 
 mongo.connect(
-    process.env.DATABASE,
+    process.env.DATABASE ||
+        'mongodb://fcc-advancednode:fcc-advancednode7@ds117545.mlab.com:17545/fcc-advancednode',
     (err, db) => {
         if (err) {
             console.log('Database error: ' + err)
@@ -75,6 +76,7 @@ mongo.connect(
                     )
                 })
             )
+            //
         }
     }
 )
@@ -83,7 +85,20 @@ app.route('/').get((req, res) => {
     res.render(process.cwd() + '/views/pug/index', {
         title: 'Hello',
         message: 'Please login',
+        showLogin: true,
     })
+})
+
+app.post(
+    '/login',
+    passport.authenticate('local', { failureRedirect: '/' }),
+    (req, res) => {
+        res.redirect('/profile')
+    }
+)
+
+app.get('/profile', (req, res) => {
+    res.render(process.cwd() + '/views/pug/profile')
 })
 
 app.listen(process.env.PORT || 3000, () => {
