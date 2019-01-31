@@ -86,6 +86,7 @@ mongo.connect(
                 })
             })
 
+            //login
             app.post(
                 '/login',
                 passport.authenticate('local', { failureRedirect: '/' }),
@@ -94,6 +95,7 @@ mongo.connect(
                 }
             )
 
+            //profile
             function ensureAuthenticated(req, res, next) {
                 if (req.isAuthenticated()) {
                     return next()
@@ -105,6 +107,19 @@ mongo.connect(
                 res.render(process.cwd() + '/views/pug/profile', {
                     username: req.user.username,
                 })
+            })
+
+            //logout
+            app.get('/logout', (req, res) => {
+                req.logout()
+                res.redirect('/')
+            })
+
+            //404 middleware
+            app.use((req, res, next) => {
+                res.status(404)
+                    .type('text')
+                    .send('Not Found')
             })
 
             app.listen(process.env.PORT || 3000, () => {
