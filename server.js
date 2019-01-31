@@ -2,13 +2,11 @@
 
 const express = require('express')
 const bodyParser = require('body-parser')
+const fccTesting = require('./freeCodeCamp/fcctesting.js')
 const session = require('express-session')
 const mongo = require('mongodb').MongoClient
-
-const auth = require('./Auth.js')
 const routes = require('./Routes.js')
-
-const fccTesting = require('./freeCodeCamp/fcctesting.js')
+const auth = require('./Auth.js')
 
 const app = express()
 
@@ -21,8 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.set('view engine', 'pug')
 
 mongo.connect(
-    process.env.DATABASE ||
-        'mongodb://fcc-advancednode:fcc-advancednode7@ds117545.mlab.com:17545/fcc-advancednode',
+    process.env.DATABASE,
     (err, db) => {
         if (err) {
             console.log('Database error: ' + err)
@@ -33,7 +30,6 @@ mongo.connect(
 
             routes(app, db)
 
-            //listen
             app.listen(process.env.PORT || 3000, () => {
                 console.log('Listening on port ' + process.env.PORT)
             })
