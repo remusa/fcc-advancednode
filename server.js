@@ -3,7 +3,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const session = require('express-session')
-const { MongoClient } = require('mongodb')
+const mongo = require('mongodb').MongoClient
 
 const auth = require('./Auth.js')
 const routes = require('./Routes.js')
@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 app.set('view engine', 'pug')
 
-MongoClient.connect(
+mongo.connect(
     process.env.DATABASE ||
         'mongodb://fcc-advancednode:fcc-advancednode7@ds117545.mlab.com:17545/fcc-advancednode',
     (err, db) => {
