@@ -4,7 +4,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const fccTesting = require('./freeCodeCamp/fcctesting.js')
 
-const mongo = require('mongodb').MongoClient
+const { MongoClient, ObjectID } = require('mongodb')
 
 const session = require('express-session')
 const passport = require('passport')
@@ -30,7 +30,7 @@ app.use(
 app.use(passport.initialize())
 app.use(passport.session())
 
-mongo.connect(
+MongoClient.connect(
     process.env.DATABASE ||
         'mongodb://fcc-advancednode:fcc-advancednode7@ds117545.mlab.com:17545/fcc-advancednode',
     (err, db) => {
@@ -83,6 +83,7 @@ mongo.connect(
                     title: 'Hello',
                     message: 'Please login',
                     showLogin: true,
+                    showRegistration: true,
                 })
             })
 
@@ -114,6 +115,44 @@ mongo.connect(
                 req.logout()
                 res.redirect('/')
             })
+
+            //register
+            app.post(
+                '/register',
+                (req, res, next) => {
+                    console.log('/register')
+
+                    db.collection('users').findOne(
+                        { username: req.body.username },
+                        function(err, user) {
+                            if (err) {
+                                next(err)
+                            } else if (user) {
+                                res.redirect('/')
+                            } else {
+                                db.collection('users').insertOne(
+                                    {
+                                        username: req.body.username,
+                                        password: req.body.password,
+                                    },
+                                    (err, doc) => {
+                                        if (err) {
+                                            res.redirect('/')
+                                        } else {
+                                            next(null, user)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    )
+                    // db
+                },
+                passport.authenticate('local', { failureRedirect: '/' }),
+                (req, res, next) => {
+                    res.redirect('/profile')
+                }
+            )
 
             //404 middleware
             app.use((req, res, next) => {
