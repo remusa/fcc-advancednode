@@ -20,9 +20,6 @@ app.use('/public', express.static(process.cwd() + '/public'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-app.use(passport.initialize())
-app.use(passport.session())
-
 app.use(
     session({
         secret: process.env.SESSION_SECRET || 'secret',
@@ -30,32 +27,34 @@ app.use(
         saveUninitialized: true,
     })
 )
+app.use(passport.initialize())
+app.use(passport.session())
 
 mongo.connect(
     process.env.DATABASE ||
         'mongodb://fcc-advancednode:fcc-advancednode7@ds117545.mlab.com:17545/fcc-advancednode',
     (err, db) => {
         if (err) {
-            console.log('Database error: ' + err)
+            console.log('Database error :' + err)
         } else {
             console.log('Successful database connection')
-
-            //serialization and app.listen
+            //console.log(db);
             passport.serializeUser((user, done) => {
                 done(null, user._id)
             })
 
             passport.deserializeUser((id, done) => {
-                mongo
-                    .collection('users')
-                    .findOne({ _id: new ObjectID(id) }, (err, doc) => {
-                        done(doc, null)
-                    })
+                db.collection('users').findOne(
+                    { _id: new ObjectID(id) },
+                    (err, doc) => {
+                        done(null, doc)
+                    }
+                )
             })
-
-            //strategies
             passport.use(
                 new LocalStrategy(function(username, password, done) {
+                    //  const db = db.db('fcc-passport')
+                    //var db = client.db('fcc-passport');
                     db.collection('users').findOne(
                         { username: username },
                         function(err, user) {
@@ -66,41 +65,53 @@ mongo.connect(
                                 return done(err)
                             }
                             if (!user) {
-                                return done(null, false)
+                                return done(err)
                             }
-                            if (password !== user.password) {
+                            if (password !== password) {
                                 return done(null, false)
                             }
                             return done(null, user)
                         }
-                    )
+                    ) //function(err
                 })
             )
-            //
+
+            //app.post("/login", passport.authenticate('local', {failureRedirect:'/'}), function(req,res){
+
+            //})//app.get
+
+            app.route('/').get((req, res) => {
+                //console.log(process.cwd())
+                // res.render(process.cwd() + 'views/pug/index.pug')
+                res.render(process.cwd() + '/views/pug/index.pug', {
+                    title: 'Hello',
+                    message: 'Please login',
+                    showLogin: true,
+                })
+
+                //  res.sendFile(process.cwd() + '/views/index.html');
+            })
+            app.route('/login').post(
+                passport.authenticate('local', { failureRedirect: '/' }),
+                (req, res) => {
+                    res.redirect('/profile')
+                }
+            )
+
+            function ensureAuthenticated(req, res, next) {
+                if (req.isAuthenticated()) {
+                    return next()
+                }
+                res.redirect('/')
+            }
+
+            app.route('/profile').get(ensureAuthenticated, (req, res) => {
+                res.render(process.cwd() + '/views/pug/profile')
+            })
+
+            app.listen(process.env.PORT || 3000, () => {
+                console.log('Listening on port ' + process.env.PORT)
+            })
         }
     }
-)
-
-app.route('/').get((req, res) => {
-    res.render(process.cwd() + '/views/pug/index', {
-        title: 'Hello',
-        message: 'Please login',
-        showLogin: true,
-    })
-})
-
-app.post(
-    '/login',
-    passport.authenticate('local', { failureRedirect: '/' }),
-    (req, res) => {
-        res.redirect('/profile')
-    }
-)
-
-app.get('/profile', (req, res) => {
-    res.render(process.cwd() + '/views/pug/profile')
-})
-
-app.listen(process.env.PORT || 3000, () => {
-    console.log('Listening on port ' + process.env.PORT)
-})
+) //mongo.connect
