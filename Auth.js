@@ -1,9 +1,21 @@
-const { ObjectID } = require('mongodb')
+const session = require('express-session')
 const passport = require('passport')
+const { ObjectID } = require('mongodb')
 const LocalStrategy = require('passport-local')
 const bcrypt = require('bcrypt')
 
 module.exports = function(app, db) {
+    //session
+    app.use(
+        session({
+            secret: process.env.SESSION_SECRET || 'secret',
+            resave: true,
+            saveUninitialized: true,
+        })
+    )
+    app.use(passport.initialize())
+    app.use(passport.session())
+
     //serialization
     passport.serializeUser((user, done) => {
         done(null, user._id)
