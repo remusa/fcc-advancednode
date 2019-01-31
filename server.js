@@ -35,10 +35,11 @@ mongo.connect(
         'mongodb://fcc-advancednode:fcc-advancednode7@ds117545.mlab.com:17545/fcc-advancednode',
     (err, db) => {
         if (err) {
-            console.log('Database error :' + err)
+            console.log('Database error: ' + err)
         } else {
             console.log('Successful database connection')
-            //console.log(db);
+
+            //serialization and app.listen
             passport.serializeUser((user, done) => {
                 done(null, user._id)
             })
@@ -51,10 +52,10 @@ mongo.connect(
                     }
                 )
             })
+
+            //strategies
             passport.use(
                 new LocalStrategy(function(username, password, done) {
-                    //  const db = db.db('fcc-passport')
-                    //var db = client.db('fcc-passport');
                     db.collection('users').findOne(
                         { username: username },
                         function(err, user) {
@@ -65,33 +66,28 @@ mongo.connect(
                                 return done(err)
                             }
                             if (!user) {
-                                return done(err)
+                                return done(null, false)
                             }
-                            if (password !== password) {
+                            if (password !== user.password) {
                                 return done(null, false)
                             }
                             return done(null, user)
                         }
-                    ) //function(err
+                    )
                 })
             )
 
-            //app.post("/login", passport.authenticate('local', {failureRedirect:'/'}), function(req,res){
-
-            //})//app.get
-
-            app.route('/').get((req, res) => {
-                //console.log(process.cwd())
-                // res.render(process.cwd() + 'views/pug/index.pug')
-                res.render(process.cwd() + '/views/pug/index.pug', {
+            // routes
+            app.get('/', (req, res) => {
+                res.render(process.cwd() + '/views/pug/index', {
                     title: 'Hello',
                     message: 'Please login',
                     showLogin: true,
                 })
-
-                //  res.sendFile(process.cwd() + '/views/index.html');
             })
-            app.route('/login').post(
+
+            app.post(
+                '/login',
                 passport.authenticate('local', { failureRedirect: '/' }),
                 (req, res) => {
                     res.redirect('/profile')
@@ -105,8 +101,10 @@ mongo.connect(
                 res.redirect('/')
             }
 
-            app.route('/profile').get(ensureAuthenticated, (req, res) => {
-                res.render(process.cwd() + '/views/pug/profile')
+            app.get('/profile', ensureAuthenticated, (req, res) => {
+                res.render(process.cwd() + '/views/pug/profile', {
+                    username: req.user.username,
+                })
             })
 
             app.listen(process.env.PORT || 3000, () => {
@@ -114,4 +112,4 @@ mongo.connect(
             })
         }
     }
-) //mongo.connect
+)
