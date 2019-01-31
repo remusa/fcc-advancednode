@@ -16,15 +16,31 @@ app.use('/public', express.static(process.cwd() + '/public'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
+app.use(passport.initialize())
+app.use(passport.session())
+
 app.use(
     session({
-        secret: process.env.SESSION_SECRET || 'secret',
+        secret: process.env.SESSION_SECRET,
         resave: true,
         saveUninitialized: true,
     })
 )
 
-app.use(passport.initialize())
+passport.serializeUser((user, done) => {
+    done(null, user._id)
+})
+
+passport.deserializeUser((user, done) => {
+    // db.collection('users').findOne({
+    //     _id: new ObjectID(id),
+    //     (err, doc) => {
+    //         done(null, doc)
+    //     }
+    // })
+
+    done(null, null)
+})
 
 app.route('/').get((req, res) => {
     res.render(process.cwd() + '/views/pug/index', {
