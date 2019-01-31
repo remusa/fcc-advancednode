@@ -32,14 +32,13 @@ passport.serializeUser((user, done) => {
 })
 
 passport.deserializeUser((user, done) => {
-    // db.collection('users').findOne({
-    //     _id: new ObjectID(id),
-    //     (err, doc) => {
-    //         done(null, doc)
-    //     }
-    // })
-
-    done(null, null)
+    db.collection('users').findOne({
+        _id: new ObjectID(id),
+        (err, doc) => {
+            // done(null, doc)
+            done(null, null)
+        }
+    })
 })
 
 app.route('/').get((req, res) => {
