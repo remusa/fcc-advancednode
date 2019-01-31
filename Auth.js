@@ -47,6 +47,7 @@ module.exports = function(app, db) {
                 if (!bcrypt.compareSync(password, user.password)) {
                     return done(null, false)
                 }
+                //if (password !== user.password) { return done(null, false); }
                 return done(null, user)
             })
         })

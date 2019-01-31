@@ -21,26 +21,6 @@ module.exports = function(app, db) {
         }
     )
 
-    //profile
-    function ensureAuthenticated(req, res, next) {
-        if (req.isAuthenticated()) {
-            return next()
-        }
-        res.redirect('/')
-    }
-
-    app.get('/profile', ensureAuthenticated, (req, res) => {
-        res.render(process.cwd() + '/views/pug/profile', {
-            username: req.user.username,
-        })
-    })
-
-    //logout
-    app.get('/logout', (req, res) => {
-        req.logout()
-        res.redirect('/')
-    })
-
     //register
     app.post(
         '/register',
@@ -81,15 +61,30 @@ module.exports = function(app, db) {
         }
     )
 
+    //logout
+    app.get('/logout', (req, res) => {
+        req.logout()
+        res.redirect('/')
+    })
+
+    function ensureAuthenticated(req, res, next) {
+        if (req.isAuthenticated()) {
+            return next()
+        }
+        res.redirect('/')
+    }
+
+    //profile
+    app.get('/profile', ensureAuthenticated, (req, res) => {
+        res.render(process.cwd() + '/views/pug/profile', {
+            username: req.user.username,
+        })
+    })
+
     //404 middleware
     app.use((req, res, next) => {
         res.status(404)
             .type('text')
             .send('Not Found')
-    })
-
-    //listen
-    app.listen(process.env.PORT || 3000, () => {
-        console.log('Listening on port ' + process.env.PORT)
     })
 }

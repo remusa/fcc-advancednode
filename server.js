@@ -3,22 +3,22 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const session = require('express-session')
+const { MongoClient } = require('mongodb')
 
 const auth = require('./Auth.js')
 const routes = require('./Routes.js')
 
 const fccTesting = require('./freeCodeCamp/fcctesting.js')
 
-const { MongoClient } = require('mongodb')
-
 const app = express()
 
-app.set('view engine', 'pug')
-
 fccTesting(app) //For FCC testing purposes
+
 app.use('/public', express.static(process.cwd() + '/public'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+
+app.set('view engine', 'pug')
 
 MongoClient.connect(
     process.env.DATABASE ||
@@ -30,7 +30,13 @@ MongoClient.connect(
             console.log('Successful database connection')
 
             auth(app, db)
+
             routes(app, db)
+
+            //listen
+            app.listen(process.env.PORT || 3000, () => {
+                console.log('Listening on port ' + process.env.PORT)
+            })
         }
     }
 )
